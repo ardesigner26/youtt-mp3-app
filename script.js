@@ -33,10 +33,11 @@ async function checkUrlType() {
 
     // 1. É Playlist?
     if (playlistId) {
-        // Se tiver vídeo junto, mostra ele primeiro
         if (videoId) {
-            createWidgetCard(videoId, "Vídeo Atual");
+            // Se tiver vídeo junto, mostra ele primeiro
+            createDirectButton(videoId, "Vídeo Atual (Destaque)");
             
+            // Botão para carregar o resto
             const loadPlaylistBtn = document.createElement('button');
             loadPlaylistBtn.className = 'action-btn';
             loadPlaylistBtn.style.marginTop = '15px';
@@ -52,7 +53,7 @@ async function checkUrlType() {
 
     // 2. É Vídeo Único?
     if (videoId) {
-        createWidgetCard(videoId, "Vídeo Encontrado");
+        createDirectButton(videoId, "Vídeo Encontrado");
         return;
     }
 
@@ -61,39 +62,32 @@ async function checkUrlType() {
     urlInput.style.borderColor = 'var(--primary)';
 }
 
-// --- CRIA O WIDGET DE DOWNLOAD (A MÁGICA) ---
-function createWidgetCard(videoId, title) {
+// --- CRIA O BOTÃO DE DOWNLOAD (100% FUNCIONAL) ---
+function createDirectButton(videoId, title) {
     const item = document.createElement('div');
     item.className = 'download-item';
     item.style.flexDirection = 'column';
-    item.style.padding = '0'; // Remove padding para o iframe caber
-    item.style.overflow = 'hidden';
-    item.style.background = '#fff';
+    item.style.gap = '10px';
+    item.style.alignItems = 'stretch';
 
-    // Título
-    const header = document.createElement('div');
-    header.style.padding = '10px';
-    header.style.background = '#f8f9fa';
-    header.style.borderBottom = '1px solid #eee';
-    header.style.fontWeight = 'bold';
-    header.style.fontSize = '0.9rem';
-    header.innerText = title || "Download Disponível";
-    item.appendChild(header);
+    // Link Mágico Limpo (Yout)
+    const magicLink = `https://yout.com/video/${videoId}`;
 
-    // O IFRAME QUE BURLA O CORS
-    // Usamos o serviço Vevioz que permite embed
-    const iframeContainer = document.createElement('div');
-    iframeContainer.innerHTML = `
-        <iframe 
-            src="https://api.vevioz.com/@api/button/mp3/${videoId}" 
-            width="100%" 
-            height="120px" 
-            allowtransparency="true" 
-            scrolling="no" 
-            style="border:none; overflow:hidden;">
-        </iframe>
+    item.innerHTML = `
+        <div class="item-info" style="text-align: center;">
+            <div class="item-title" style="font-size: 1rem;">${title}</div>
+            <div class="item-meta" style="margin-top: 4px;">Pronto para baixar</div>
+        </div>
+        
+        <a href="${magicLink}" target="_blank" class="server-btn primary" style="text-align: center; justify-content: center; padding: 15px; font-size: 1rem;">
+            <i class="ph-bold ph-download-simple"></i> 
+            BAIXAR MP3 AGORA
+        </a>
+        
+        <p style="font-size: 0.75rem; color: #999; text-align: center;">
+            *Abrirá a tela de salvamento segura em nova aba.
+        </p>
     `;
-    item.appendChild(iframeContainer);
 
     resultsArea.appendChild(item);
     resultsArea.scrollIntoView({ behavior: 'smooth' });
@@ -101,7 +95,6 @@ function createWidgetCard(videoId, title) {
 
 // --- LÓGICA DE PLAYLIST (Piped API) ---
 async function fetchPlaylistData(playlistId) {
-    // Remove botão duplicado se existir
     const existingBtn = resultsArea.querySelector('button.action-btn');
     if (existingBtn) existingBtn.remove();
 
@@ -109,7 +102,6 @@ async function fetchPlaylistData(playlistId) {
     convertBtn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Lendo Playlist...';
     
     try {
-        // Tenta ler a playlist
         const response = await fetch(`https://api.piped.co/playlists/${playlistId}`);
         const data = await response.json();
         
@@ -117,8 +109,8 @@ async function fetchPlaylistData(playlistId) {
         renderPlaylistItems(data.relatedStreams);
         
     } catch (error) {
-        // Backup server
         try {
+            // Backup
             const backup = await fetch(`https://pipedapi.kavin.rocks/playlists/${playlistId}`);
             const dataBackup = await backup.json();
             renderPlaylistItems(dataBackup.relatedStreams);
@@ -164,8 +156,7 @@ function processSelectedVideos() {
     playlistArea.classList.add('hidden');
     resultsArea.innerHTML = '<h3>Downloads Prontos:</h3>';
 
-    // Gera um widget para cada vídeo selecionado
     selected.forEach(checkbox => {
-        createWidgetCard(checkbox.value, checkbox.getAttribute('data-title'));
+        createDirectButton(checkbox.value, checkbox.getAttribute('data-title'));
     });
 }
