@@ -87,4 +87,11 @@
     font-weight: 600; font-size: 0.85rem; margin-top: 5px;
 }
 .server-btn.primary { background-color: var(--text-main); color: white; }
-.server-btn:hover { opacity: 0.9; }
+
+.server-btn:hover { opacity: 0.9; }/* Ajuste para o Widget de Download */
+.download-item iframe {
+    display: block;
+    width: 100%;
+    min-height: 120px;
+    border-radius: 0 0 8px 8px;
+}
